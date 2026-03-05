@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT Student Grade Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo logo-left">
+    <img src="PCC.png" alt="PCC Logo">
+  </div>
+
+  <div class="title">
+    <h1>IT STUDENT GRADE SYSTEM</h1>
+    <h3>School of Information and Technology</h3>
+    <h4>Passi City College</h4>
+  </div>
+
+  <div class="logo logo-right">
+    <img src="IT.jpg" alt="IT Logo">
+  </div>
+</header>
+
+<!-- DASHBOARD -->
+<section class="dashboard">
+
+  <div class="card add-student">
+    <h2>Add Student</h2>
+    <input id="name" placeholder="Student Name">
+    <input id="ias302" type="number" placeholder="IAS 302">
+    <input id="sa301" type="number" placeholder="SA 301">
+    <input id="itelec3" type="number" placeholder="IT ELEC 3">
+    <input id="itelec4" type="number" placeholder="IT ELEC 4">
+    <input id="cap301" type="number" placeholder="CAP 301">
+    <button onclick="addStudent()">Add Student</button>
+  </div>
+
+  <div class="card stats">
+    <h2>Class Analytics</h2>
+    <div class="stat-box">
+      <p>Total Students</p>
+      <h3 id="totalStudents">0</h3>
+    </div>
+    <div class="stat-box">
+      <p>Class Average</p>
+      <h3 id="classAverage">0</h3>
+    </div>
+    <div class="stat-box">
+      <p>Top Student</p>
+      <h3 id="topStudent">None</h3>
+    </div>
+  </div>
+
+</section>
+
+<!-- STUDENT RECORDS TABLE -->
+<section class="records">
+  <div class="table-wrapper">
+    <h2>Student Records</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>IAS302</th>
+          <th>SA301</th>
+          <th>ITELEC3</th>
+          <th>ITELEC4</th>
+          <th>CAP301</th>
+          <th>Average</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FIREBASE SETUP -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } 
+    from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBcr7jhbR0NsEFYzVbRipBzQ-F8GrluWI8",
+    authDomain: "it-grade-systems.firebaseapp.com",
+    projectId: "it-grade-systems",
+    storageBucket: "it-grade-systems.firebasestorage.app",
+    messagingSenderId: "208414785795",
+    appId: "1:208414785795:web:ba353afc01b1f19e562936"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Reference to students collection
+  const dbStudents = collection(db, "students");
+
+  // ----------------------------
+  // FUNCTIONS
+  // ----------------------------
+  function calculateAverage(s) {
+    return (Number(s.ias302) + Number(s.sa301) + Number(s.itelec3) + Number(s.itelec4) + Number(s.cap301)) / 5;
+  }
+
+  function getStatus(avg) {
+    if (avg >= 90) return ["Excellent", "excellent"];
+    if (avg >= 75) return ["Good", "good"];
+    if (avg >= 60) return ["Passed", "good"];
+    return ["Failed", "failed"];
+  }
+
+  async function addStudent() {
+    const name = document.getElementById("name").value.trim();
+    if (!name) { alert("Enter student name"); return; }
+
+    const student = {
+      name,
+      ias302: Number(document.getElementById("ias302").value),
+      sa301: Number(document.getElementById("sa301").value),
+      itelec3: Number(document.getElementById("itelec3").value),
+      itelec4: Number(document.getElementById("itelec4").value),
+      cap301: Number(document.getElementById("cap301").value)
+    };
+
+    await addDoc(dbStudents, student);
+    clearForm();
+  }
+
+  async function deleteStudent(id) {
+    await deleteDoc(doc(db, "students", id));
+  }
+
+  function clearForm() {
+    document.getElementById("name").value = "";
+    document.getElementById("ias302").value = "";
+    document.getElementById("sa301").value = "";
+    document.getElementById("itelec3").value = "";
+    document.getElementById("itelec4").value = "";
+    document.getElementById("cap301").value = "";
+  }
+
+  function renderTable(students) {
+    const table = document.getElementById("tableBody");
+    table.innerHTML = "";
+
+    let total = 0;
+    let top = students.length > 0 ? students[0] : null;
+    let topAvg = top ? calculateAverage(top) : 0;
+
+    students.forEach(s => {
+      const avg = calculateAverage(s);
+      total += avg;
+      const status = getStatus(avg);
+
+      if (avg > topAvg) { topAvg = avg; top = s; }
+
+      table.innerHTML += `
+        <tr>
+          <td>${s.name}</td>
+          <td>${s.ias302}</td>
+          <td>${s.sa301}</td>
+          <td>${s.itelec3}</td>
+          <td>${s.itelec4}</td>
+          <td>${s.cap301}</td>
+          <td>${avg.toFixed(2)}</td>
+          <td class="${status[1]}">${status[0]}</td>
+          <td><button onclick="deleteStudent('${s.id}')">Delete</button></td>
+        </tr>
+      `;
+    });
+
+    updateStats(students, total, top);
+  }
+
+  function updateStats(students, total, top) {
+    document.getElementById("totalStudents").innerText = students.length;
+    if (students.length === 0) {
+      document.getElementById("classAverage").innerText = 0;
+      document.getElementById("topStudent").innerText = "None";
+      return;
+    }
+    document.getElementById("classAverage").innerText = (total / students.length).toFixed(2);
+    document.getElementById("topStudent").innerText = top.name;
+  }
+
+  // Real-time listener
+  onSnapshot(dbStudents, snapshot => {
+    const students = [];
+    snapshot.forEach(docItem => {
+      const data = docItem.data();
+      data.id = docItem.id;
+      students.push(data);
+    });
+    renderTable(students);
+  });
+
+  // Make functions global for onclick
+  window.addStudent = addStudent;
+  window.deleteStudent = deleteStudent;
+</script>
+
+</body>
+</html>
