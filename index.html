@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title> IT Student Grade Dashboard</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<header class="header">
+
+<div class="logo logo-left">
+<img src="PCC.png">
+</div>
+
+<div class="title">
+<h1> IT STUDENT GRADE SYSTEM</h1>
+  <h3>School of Information and Technology</h3>
+  <h4>Passi City College</h4>
+</div>
+ 
+<div class="logo logo-right">
+<img src="IT.jpg">
+</div>
+
+</header>
+
+
+<section class="dashboard">
+
+<div class="card add-student">
+
+<h2>Add Student</h2>
+
+<input id="name" placeholder="Student Name">
+
+<input id="ias302" type="number" placeholder="IAS 302">
+<input id="sa301" type="number" placeholder="SA 301">
+<input id="itelec3" type="number" placeholder="IT ELEC 3">
+<input id="itelec4" type="number" placeholder="IT ELEC 4">
+<input id="cap301" type="number" placeholder="CAP 301">
+
+<button onclick="addStudent()">Add Student</button>
+
+</div>
+
+
+<div class="card stats">
+
+<h2>Class Analytics</h2>
+
+<div class="stat-box">
+<p>Total Students</p>
+<h3 id="totalStudents">0</h3>
+</div>
+
+<div class="stat-box">
+<p>Class Average</p>
+<h3 id="classAverage">0</h3>
+</div>
+
+<div class="stat-box">
+<p>Top Student</p>
+<h3 id="topStudent">None</h3>
+</div>
+
+</div>
+
+</section>
+
+
+<section class="records">
+
+<h2>Student Records</h2>
+
+<table>
+
+<thead>
+
+<tr>
+<th>Name</th>
+<th>IAS302</th>
+<th>SA301</th>
+<th>ITELEC3</th>
+<th>ITELEC4</th>
+<th>CAP301</th>
+<th>Average</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+</section>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
